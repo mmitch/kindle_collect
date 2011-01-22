@@ -1,8 +1,9 @@
 #!/usr/bin/perl -w
 use strict;
 
-use JSON::Any;
 use Data::Dumper;
+use Digest::SHA1 qw(sha1_hex);
+use JSON::Any;
 
 #################################################################################
 
@@ -50,6 +51,20 @@ my $json;
 }
 
 my $j = JSON::Any->new;
-my $col = $j->decode($json);
+my $cols = $j->decode($json);
 
-print Dumper($col);
+## parse documents
+
+opendir DOC, $docdir or die "can't opendir `$docdir': $!\n";
+my %docs = map { '*'.sha1_hex( "/mnt/us/documents/$_" ) => $_ } grep { -f "$docdir/".$_ } readdir DOC;
+closedir DOC;
+
+foreach my $colname ( keys %{$cols} ) {
+    my $col = $cols->{$colname};
+    print "Collection:   $colname\n";
+    print "last access:  " . localtime($col->{lastAccess}/1000) . "\n";
+    foreach my $item ( @{$col->{items}} ) {
+	print "\t$docs{$item}\n";
+    }
+    print "\n";
+}
