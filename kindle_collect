@@ -1,0 +1,55 @@
+#!/usr/bin/perl -w
+use strict;
+
+use JSON::Any;
+use Data::Dumper;
+
+#################################################################################
+
+sub check_dir($)
+{
+    my $dir = shift;
+    die "`$dir' does not exist\n"  unless -e $dir;
+    die "`$dir' is no directory\n" unless -d $dir;
+    
+}
+
+sub check_file($)
+{
+    my $file = shift;
+    die "`$file' does not exist\n" unless -e $file;
+    die "`$file' is no file\n"     unless -f $file;
+    
+}
+
+#################################################################################
+
+## check parameter and directories
+
+die "give mounted kindle root directory as parameter\n" unless defined $ARGV[0];
+my $rootdir = shift;
+check_dir $rootdir;
+
+my $docdir = $rootdir.'/documents';
+check_dir $docdir;
+
+my $sysdir = $rootdir.'/system';
+check_dir $sysdir;
+
+my $colfile = $sysdir.'/collections.json';
+check_file $colfile;
+
+## parse collections file
+
+my $json;
+{
+    local $\ = undef;
+    open COL, '<', $colfile or die "can't open `$colfile': $!\n";
+    $json = <COL>;
+    close COL or die "can't close `$colfile': $!\n";
+}
+
+my $j = JSON::Any->new;
+my $col = $j->decode($json);
+
+print Dumper($col);
