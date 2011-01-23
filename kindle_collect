@@ -133,7 +133,7 @@ if ($ARGV[0] eq '--read') { ######## READ
     # print collections
     
     my %hashes;
-    foreach my $colname ( keys %{$cols} ) {
+    foreach my $colname ( sort keys %{$cols} ) {
 
 	my $col = $cols->{$colname};
 	$colname =~ s/\@en-US$//;
