@@ -113,7 +113,7 @@ check_file $colfile;
 
 if ($ARGV[0] eq '--read') { ######## READ
 
-    ## parse collections file
+    # parse collections file
 
     my $json;
     {
@@ -126,11 +126,11 @@ if ($ARGV[0] eq '--read') { ######## READ
     my $j = JSON::Any->new;
     my $cols = $j->decode($json);
 
-    ## parse documents
+    # find all documents
     
     my %docs = find_docs $docdir;
 
-    ## print collections
+    # print collections
     
     my %hashes;
     foreach my $colname ( keys %{$cols} ) {
@@ -159,7 +159,7 @@ if ($ARGV[0] eq '--read') { ######## READ
 
     }
 
-    #  print uncollected
+    # print uncollected
 
     print "%% ___unsorted___\n";
 
@@ -184,4 +184,59 @@ if ($ARGV[0] eq '--read') { ######## READ
 
 elsif ($ARGV[0] eq '--write') {
 
+    # find all documents
+    
+    my %docs = find_docs $docdir;
+    my %files;
+    foreach (keys %docs) {
+	$files{$docs{$_}} = $_;
+    }
+
+    # parse stdin
+    
+    my %cols;
+    my $colname = '';
+    
+    while (my $line = <STDIN>) {
+
+	chomp $line;
+	$line =~ s/(\s+$|^\s+)//g;
+	next if $line eq '';
+	next if $line =~ /^!.*missing documents/;
+		    
+	if ($line =~ /^%%\s*(.*)$/) {
+	    $colname = $1;
+	    $cols{$colname}->{NAME} = $colname;
+
+	} elsif ($line =~ /^\+\+\s*(\d+)/) {
+	    $cols{$colname}->{LASTACCESS} = $1;
+
+	} else {
+	    if (exists $files{$line}) {
+		push @{$cols{$colname}->{ITEMS}}, $files{$line};
+	    } else {
+		die "line $.:unkown document `$line' in collection `$colname'\n";
+	    }
+	}
+
+    }
+
+    die "input file messed up, collection name must precede all other lines\n" if exists $cols{''};
+
+    # write JSON
+
+    my $json;
+    foreach my $col (values %cols) {
+	next if $col->{NAME} eq '___unsorted___';
+	$json->{"$col->{NAME}\@en-US"} = {
+	    'lastAccess' => exists $col->{LASTACCESS} ? $col->{LASTACCESS} : time().'000',
+	    'items' => exists $col->{ITEMS} ? $col->{ITEMS} : [],
+	};
+    }
+
+    my $j = JSON::Any->new;
+    open COL, '>', $colfile or die "can't open `$colfile': $!\n";
+    print COL $j->encode($json);
+    close COL or die "can't close `$colfile': $!\n";
+ 
 }
