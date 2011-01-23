@@ -1,12 +1,33 @@
-#!/usr/bin/perl -w
-use strict;
+#!/usr/bin/perl
+#
+# kindle_collect - read and write Amazon Kindle collections
+#
+# Copyright (C) 2011  Christian Garbs <mitch@cgarbs.de>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
 
-use Data::Dumper;
+use strict;
+use warnings;
+
 use Digest::SHA1 qw(sha1_hex);
 use File::Find;
 use JSON::Any;
 
-#################################################################################
+
+
+### subroutines #################################################################
 
 sub check_dir($)
 {
@@ -61,16 +82,18 @@ sub find_docs($)
     return %docs;
 }
 
-#################################################################################
 
-## check parameters
+
+### MAIN ########################################################################
+
+# check parameters
 
 if ( @ARGV != 2 or ($ARGV[0] ne '--read' && $ARGV[0] ne '--write') ) {
     help();
     exit;
 }
 
-## check directories
+# check directories
 
 my $rootdir = $ARGV[1];
 check_dir $rootdir;
@@ -84,7 +107,12 @@ check_dir $sysdir;
 my $colfile = $sysdir.'/collections.json';
 check_file $colfile;
 
+
+
+### READ ########################################################################
+
 if ($ARGV[0] eq '--read') { ######## READ
+
     ## parse collections file
 
     my $json;
@@ -106,12 +134,16 @@ if ($ARGV[0] eq '--read') { ######## READ
     
     my %hashes;
     foreach my $colname ( keys %{$cols} ) {
+
 	my $col = $cols->{$colname};
 	$colname =~ s/\@en-US$//;
+
 	print "%% $colname\n";
 	print "++ $col->{lastAccess} (" . localtime($col->{lastAccess}/1000) . ")\n";
+
 	my @result;
 	my $missing = 0;
+
 	foreach my $item ( @{$col->{items}} ) {
 	    if (exists $docs{$item}) {
 		push @result, $docs{$item};
@@ -120,20 +152,36 @@ if ($ARGV[0] eq '--read') { ######## READ
 		$missing++;
 	    }
 	}
+
 	print "!\t$missing missing documents\n" if $missing;
 	print "\t$_\n" foreach (sort @result);
 	print "\n";
+
     }
 
-    ## print uncollected
+    #  print uncollected
+
     print "%% ___unsorted___\n";
+
     my @result;
+
     foreach my $hash (keys %docs) {
+
 	if (! exists $hashes{$hash}) {
 	    push @result, $docs{$hash};
 	}
+
     }
+
     print "\t$_\n" foreach (sort @result);
     print "\n";
     
+}
+
+
+
+### WRITE #######################################################################
+
+elsif ($ARGV[0] eq '--write') {
+
 }
