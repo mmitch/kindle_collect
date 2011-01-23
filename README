@@ -1,0 +1,83 @@
+
+   BIG NOTICE:
+
+   THEORETICALLY, EVERYTHING SHOULD BE WORKING.
+   PRACTICALLY, WRITING A NEW COLLECTION FILE THE THE KINDLE
+   DOES NOT WORK.  REMOVING OLD COLLECTIONS DOES WORK, BUT
+   CHANGES TO COLLECTIONS OR NEW COLLECTIONS DON'T SHOW UP.
+   
+
+
+
+kindle_collect - read and write Amazon Kindle collections
+
+Copyright (C) 2011  Christian Garbs <mitch@cgarbs.de>
+Licensed under GNU GPL v3 or later
+
+Homepage: http://github.com/mmitch/kindle_collect
+
+
+This program comes with ABSOLUTELY NO WARRANTY.
+It might harm your Kindle, it's still experimental.
+
+
+Mode of operation:
+------------------
+
+1. Mount your kindle as a USB mass storage device, e.g. to /mnt/kindle
+
+2. Use your favourite file manager to add and remove documents from
+   your documents directory at /mnt/kindle/documents.  The Kindle
+   supports subdirectories as far as I can see.
+
+3. Export your current collections with kindle_collect:
+   $ kindle_collect --read /mnt/kindle > some_file.txt
+
+4. Edit the collection text file some_file.txt with your favourite text
+   editor:
+
+   %% lines mark the beginning of a new collection.  You can edit the
+      collection name to rename a collection.
+
+   ++ lines are the "last accessed" time for a collection, you
+      propably don't want to touch it.
+
+   !  missing documents lines tell you that some documents referred
+      in the collection cannot be found by kindle_collect.  When you
+      write the new collection file back to your Kindle, these
+      references are irrevokably lost (but the documents were missing
+      anyway, so it should not be a problem).
+
+   All other lines are filenames of documents.
+
+   Just move those filenames to the collections where you want them
+   (copy or move the whole line).  Unassigned files are listed in the
+   collection named ___unsorted__ at the end.  A file can be part of
+   none, one or multiple collections.
+
+5. Upload the new collection file to your Kindle:
+   $ kindle_collect --write /mnt/kindle < some_file.txt
+
+   This overwrites the old system/collections.json, you might want to
+   back it up for your first tries.
+
+6. Now unmount your Kindle, but don't pull the USB plug yet.
+
+7. Restart your kindle by sliding the power switch for 15 seconds.
+   Looks like you have to time it by hand because the reboot sequence
+   only starts after removing the USB plug.
+
+8. Unplug, wait for the reboot and enjoy your new collections!
+
+
+Steps 6 and 7 seem to be necessary to make the kindle read your new
+collection file instead of overwriting it with it's own old copy from
+it's internal memory.
+
+
+TODO:
+-----
+
+* Add wildcards to add whole directores instead of single files.
+
+* Try this on other hardware, only Kindle 3 has been tested so far.
