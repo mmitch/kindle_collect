@@ -24,12 +24,55 @@ sub check_file($)
     
 }
 
+sub help()
+{
+    print <<"EOF";
+
+kindle_collect [ --read <DIR> | --write <DIR> ]
+
+Read and write collection data from an Amazon Kindle.
+
+<DIR>    The directory your Kindle is mounted to.
+--read   Prints the current collection in an easy to edit format to
+         stdout.
+--write  Read this format from stdin and copies it to your Kindle,
+         overwriting your existing collections.  You might want to
+         backup system/collections.json beforehand.
+
+This is mostly untested and might (but should and propably will not)
+break your Kindle.
+
+EOF
+    ;
+}
+
+sub find_docs($)
+{
+    my $dir = shift;
+    my %docs;
+    find(sub
+	 {
+	     if ( -f $File::Find::name ) {
+		 $File::Find::name =~ s,^$dir/,,;
+		 $docs{ '*'.sha1_hex( "/mnt/us/documents/$File::Find::name") } = $File::Find::name;
+	     };
+	 }
+	 , $dir);
+    return %docs;
+}
+
 #################################################################################
 
-## check parameter and directories
+## check parameters
 
-die "give mounted kindle root directory as parameter\n" unless defined $ARGV[0];
-my $rootdir = shift;
+if ( @ARGV != 2 or ($ARGV[0] ne '--read' && $ARGV[0] ne '--write') ) {
+    help();
+    exit;
+}
+
+## check directories
+
+my $rootdir = $ARGV[1];
 check_dir $rootdir;
 
 my $docdir = $rootdir.'/documents';
@@ -41,38 +84,56 @@ check_dir $sysdir;
 my $colfile = $sysdir.'/collections.json';
 check_file $colfile;
 
-## parse collections file
+if ($ARGV[0] eq '--read') { ######## READ
+    ## parse collections file
 
-my $json;
-{
-    local $\ = undef;
-    open COL, '<', $colfile or die "can't open `$colfile': $!\n";
-    $json = <COL>;
-    close COL or die "can't close `$colfile': $!\n";
-}
-
-my $j = JSON::Any->new;
-my $cols = $j->decode($json);
-
-## parse documents
-
-my %docs;
-
-find(sub
-     {
-	 if ( -f $File::Find::name ) {
-	     $File::Find::name =~ s,^$docdir/,,;
-	     $docs{ '*'.sha1_hex( "/mnt/us/documents/$File::Find::name") } = $File::Find::name;
-	 };
-     }
-     , $docdir);
-
-foreach my $colname ( keys %{$cols} ) {
-    my $col = $cols->{$colname};
-    print "Collection:   $colname\n";
-    print "last access:  " . localtime($col->{lastAccess}/1000) . "\n";
-    foreach my $item ( @{$col->{items}} ) {
-	print "\t$docs{$item}\n";
+    my $json;
+    {
+	local $\ = undef;
+	open COL, '<', $colfile or die "can't open `$colfile': $!\n";
+	$json = <COL>;
+	close COL or die "can't close `$colfile': $!\n";
     }
+
+    my $j = JSON::Any->new;
+    my $cols = $j->decode($json);
+
+    ## parse documents
+    
+    my %docs = find_docs $docdir;
+
+    ## print collections
+    
+    my %hashes;
+    foreach my $colname ( keys %{$cols} ) {
+	my $col = $cols->{$colname};
+	$colname =~ s/\@en-US$//;
+	print "%% $colname\n";
+	print "++ $col->{lastAccess} (" . localtime($col->{lastAccess}/1000) . ")\n";
+	my @result;
+	my $missing = 0;
+	foreach my $item ( @{$col->{items}} ) {
+	    if (exists $docs{$item}) {
+		push @result, $docs{$item};
+		push @{$hashes{$item}}, $colname;
+	    } else {
+		$missing++;
+	    }
+	}
+	print "!\t$missing missing documents\n" if $missing;
+	print "\t$_\n" foreach (sort @result);
+	print "\n";
+    }
+
+    ## print uncollected
+    print "%% ___unsorted___\n";
+    my @result;
+    foreach my $hash (keys %docs) {
+	if (! exists $hashes{$hash}) {
+	    push @result, $docs{$hash};
+	}
+    }
+    print "\t$_\n" foreach (sort @result);
     print "\n";
+    
 }
