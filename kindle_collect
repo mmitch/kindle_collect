@@ -139,7 +139,12 @@ if ($ARGV[0] eq '--read') { ######## READ
 	$colname =~ s/\@en-US$//;
 
 	print "%% $colname\n";
-	print "++ $col->{lastAccess} (" . localtime($col->{lastAccess}/1000) . ")\n";
+	if ($col->{lastAccess}) {
+	    print "++ $col->{lastAccess} (" . localtime($col->{lastAccess}/1000) . ")\n";
+	} else {
+	    print "++ " . time . "000 (no last access time)\n";
+	}
+	
 
 	my @result;
 	my $missing = 0;
