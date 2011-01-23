@@ -3,6 +3,7 @@ use strict;
 
 use Data::Dumper;
 use Digest::SHA1 qw(sha1_hex);
+use File::Find;
 use JSON::Any;
 
 #################################################################################
@@ -55,9 +56,16 @@ my $cols = $j->decode($json);
 
 ## parse documents
 
-opendir DOC, $docdir or die "can't opendir `$docdir': $!\n";
-my %docs = map { '*'.sha1_hex( "/mnt/us/documents/$_" ) => $_ } grep { -f "$docdir/".$_ } readdir DOC;
-closedir DOC;
+my %docs;
+
+find(sub
+     {
+	 if ( -f $File::Find::name ) {
+	     $File::Find::name =~ s,^$docdir/,,;
+	     $docs{ '*'.sha1_hex( "/mnt/us/documents/$File::Find::name") } = $File::Find::name;
+	 };
+     }
+     , $docdir);
 
 foreach my $colname ( keys %{$cols} ) {
     my $col = $cols->{$colname};
