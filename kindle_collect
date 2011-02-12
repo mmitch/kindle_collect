@@ -37,14 +37,6 @@ sub check_dir($)
     
 }
 
-sub check_file($)
-{
-    my $file = shift;
-    die "`$file' does not exist\n" unless -e $file;
-    die "`$file' is no file\n"     unless -f $file;
-    
-}
-
 sub help()
 {
     print <<"EOF";
@@ -105,8 +97,6 @@ my $sysdir = $rootdir.'/system';
 check_dir $sysdir;
 
 my $colfile = $sysdir.'/collections.json';
-check_file $colfile;
-
 
 
 ### READ ########################################################################
@@ -115,8 +105,8 @@ if ($ARGV[0] eq '--read') { ######## READ
 
     # parse collections file
 
-    my $json;
-    {
+    my $json = '{}';
+    if ( -e $colfile ) {
 	local $\ = undef;
 	open COL, '<', $colfile or die "can't open `$colfile': $!\n";
 	$json = <COL>;
