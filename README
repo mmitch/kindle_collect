@@ -1,14 +1,3 @@
-
-   BIG NOTICE:
-
-   THEORETICALLY, EVERYTHING SHOULD BE WORKING.
-   PRACTICALLY, WRITING A NEW COLLECTION FILE THE THE KINDLE
-   DOES NOT WORK.  REMOVING OLD COLLECTIONS DOES WORK, BUT
-   CHANGES TO COLLECTIONS OR NEW COLLECTIONS DON'T SHOW UP.
-   
-
-
-
 kindle_collect - read and write Amazon Kindle collections
 
 Copyright (C) 2011  Christian Garbs <mitch@cgarbs.de>
@@ -61,18 +50,16 @@ Mode of operation:
    This overwrites the old system/collections.json, you might want to
    back it up for your first tries.
 
-6. Now unmount your Kindle, but don't pull the USB plug yet.
+6. Now unmount and unplug your Kindle.
 
-7. Restart your kindle by sliding the power switch for 15 seconds.
-   Looks like you have to time it by hand because the reboot sequence
-   only starts after removing the USB plug.
+7. Restart your kindle by sliding the power switch for 20 seconds.
 
-8. Unplug, wait for the reboot and enjoy your new collections!
+8. Wait for the reboot and enjoy your new collections!
 
 
-Steps 6 and 7 seem to be necessary to make the kindle read your new
+Steps 7 and 8 seem to be necessary to make the kindle read your new
 collection file instead of overwriting it with it's own old copy from
-it's internal memory.
+it's internal memory.  This is sad, but unsorted collections are worse.
 
 
 TODO:
