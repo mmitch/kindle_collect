@@ -224,8 +224,8 @@ elsif ($ARGV[0] eq '--write') {
     foreach my $col (values %cols) {
 	next if $col->{NAME} eq '___unsorted___';
 	$json->{"$col->{NAME}\@en-US"} = {
-	    'lastAccess' => exists $col->{LASTACCESS} ? $col->{LASTACCESS} : time().'000',
 	    'items' => exists $col->{ITEMS} ? $col->{ITEMS} : [],
+	    'lastAccess' => exists $col->{LASTACCESS} ? ($col->{LASTACCESS} + 0) : ((time().'000') + 0),
 	};
     }
 
