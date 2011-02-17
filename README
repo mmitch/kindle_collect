@@ -26,7 +26,8 @@ Mode of operation:
    editor:
 
    %% lines mark the beginning of a new collection.  You can edit the
-      collection name to rename a collection.
+      collection name to rename a collection.  You can also add new
+      collections by adding new %% lines.
 
    ++ lines are the "last accessed" time for a collection, you
       propably don't want to touch it.
