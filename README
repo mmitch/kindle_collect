@@ -70,3 +70,5 @@ TODO:
 * Add wildcards to add whole directores instead of single files.
 
 * Try this on other hardware, only Kindle 3 has been tested so far.
+
+* Don't show (autogroup?) bookmark files like .pdr for .pdf or .mbp for .txt.
