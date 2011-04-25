@@ -74,6 +74,21 @@ sub find_docs($)
     return %docs;
 }
 
+sub find_audibles($)
+{
+    my $dir = shift;
+    my %audibles;
+    find(sub
+	 {
+	     if ( -f $File::Find::name ) {
+		 $File::Find::name =~ s,^$dir/,,;
+		 $audibles{ '*'.sha1_hex( "/mnt/us/audible/$File::Find::name") } = $File::Find::name;
+	     };
+	 }
+	 , $dir);
+    return %audibles;
+}
+
 
 
 ### MAIN ########################################################################
@@ -92,6 +107,9 @@ check_dir $rootdir;
 
 my $docdir = $rootdir.'/documents';
 check_dir $docdir;
+
+my $audiodir = $rootdir.'/audible';
+check_dir $audiodir;
 
 my $sysdir = $rootdir.'/system';
 check_dir $sysdir;
@@ -116,9 +134,9 @@ if ($ARGV[0] eq '--read') { ######## READ
     my $j = JSON::Any->new;
     my $cols = $j->decode($json);
 
-    # find all documents
+    # find all files
     
-    my %docs = find_docs $docdir;
+    my %files = ( find_docs $docdir, find_audibles $audiodir );
 
     # print collections
     
@@ -140,15 +158,15 @@ if ($ARGV[0] eq '--read') { ######## READ
 	my $missing = 0;
 
 	foreach my $item ( @{$col->{items}} ) {
-	    if (exists $docs{$item}) {
-		push @result, $docs{$item};
+	    if (exists $files{$item}) {
+		push @result, $files{$item};
 		push @{$hashes{$item}}, $colname;
 	    } else {
 		$missing++;
 	    }
 	}
 
-	print "!\t$missing missing documents\n" if $missing;
+	print "!\t$missing missing files\n" if $missing;
 	print "\t$_\n" foreach (sort @result);
 	print "\n";
 
@@ -160,10 +178,10 @@ if ($ARGV[0] eq '--read') { ######## READ
 
     my @result;
 
-    foreach my $hash (keys %docs) {
+    foreach my $hash (keys %files) {
 
 	if (! exists $hashes{$hash}) {
-	    push @result, $docs{$hash};
+	    push @result, $files{$hash};
 	}
 
     }
@@ -179,12 +197,12 @@ if ($ARGV[0] eq '--read') { ######## READ
 
 elsif ($ARGV[0] eq '--write') {
 
-    # find all documents
+    # find all files
     
-    my %docs = find_docs $docdir;
-    my %files;
-    foreach (keys %docs) {
-	$files{$docs{$_}} = $_;
+    my %files = ( find_docs $docdir, find_audibles $audiodir );
+    my %files_r;
+    foreach (keys %files) {
+	$files_r{$files{$_}} = $_;
     }
 
     # parse stdin
@@ -197,7 +215,7 @@ elsif ($ARGV[0] eq '--write') {
 	chomp $line;
 	$line =~ s/(\s+$|^\s+)//g;
 	next if $line eq '';
-	next if $line =~ /^!.*missing documents/;
+	next if $line =~ /^!.*missing files/;
 		    
 	if ($line =~ /^%%\s*(.*)$/) {
 	    $colname = $1;
@@ -207,10 +225,10 @@ elsif ($ARGV[0] eq '--write') {
 	    $cols{$colname}->{LASTACCESS} = $1;
 
 	} else {
-	    if (exists $files{$line}) {
-		push @{$cols{$colname}->{ITEMS}}, $files{$line};
+	    if (exists $files_r{$line}) {
+		push @{$cols{$colname}->{ITEMS}}, $files_r{$line};
 	    } else {
-		die "line $.:unkown document `$line' in collection `$colname'\n";
+		die "line $.:unkown file `$line' in collection `$colname'\n";
 	    }
 	}
 

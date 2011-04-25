@@ -16,7 +16,8 @@ Mode of operation:
 1. Mount your kindle as a USB mass storage device, e.g. to /mnt/kindle
 
 2. Use your favourite file manager to add and remove documents from
-   your documents directory at /mnt/kindle/documents.  The Kindle
+   your documents directory at /mnt/kindle/documents.  You can also
+   add/remove audio files under /mnt/kindle/audibles.  The Kindle
    supports subdirectories as far as I can see.
 
 3. Export your current collections with kindle_collect:
@@ -38,7 +39,7 @@ Mode of operation:
       references are irrevokably lost (but the documents were missing
       anyway, so it should not be a problem).
 
-   All other lines are filenames of documents.
+   All other lines are filenames of documents or audio files.
 
    Just move those filenames to the collections where you want them
    (copy or move the whole line).  Unassigned files are listed in the
