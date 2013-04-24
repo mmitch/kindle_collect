@@ -2,7 +2,7 @@
 #
 # kindle_collect - read and write Amazon Kindle collections
 #
-# Copyright (C) 2011  Christian Garbs <mitch@cgarbs.de>
+# Copyright (C) 2011,2013  Christian Garbs <mitch@cgarbs.de>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@
 use strict;
 use warnings;
 
-use Digest::SHA1 qw(sha1_hex);
+use Digest::SHA qw(sha1_hex);
 use File::Find;
 use JSON::Any;
 
