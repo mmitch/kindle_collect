@@ -89,7 +89,22 @@ sub find_audibles($)
     return %audibles;
 }
 
-
+sub find_mangas($)
+{
+    my $dir = shift;
+    my %pictures;
+    find(sub
+	 {
+	     if ( -f $File::Find::name ) {
+		 	$File::Find::name =~ s,^$dir/,,;
+		 	if ($File::Find::name =~ /.manga$/){
+		 		$pictures{ '*'.sha1_hex( "/mnt/us/pictures/$File::Find::name") } = $File::Find::name;
+		 	}
+	     };
+	 }
+	 , $dir);
+    return %pictures;	
+}
 
 ### MAIN ########################################################################
 
@@ -116,6 +131,8 @@ check_dir $sysdir;
 
 my $colfile = $sysdir.'/collections.json';
 
+my $picturedir = $rootdir.'/pictures'; 
+check_dir $picturedir;
 
 ### READ ########################################################################
 
@@ -136,8 +153,8 @@ if ($ARGV[0] eq '--read') { ######## READ
 
     # find all files
     
-    my %files = ( find_docs $docdir, find_audibles $audiodir );
-
+    my %files = ( find_docs $docdir, find_audibles $audiodir, find_mangas $picturedir );
+	
     # print collections
     
     my %hashes;
@@ -199,7 +216,7 @@ elsif ($ARGV[0] eq '--write') {
 
     # find all files
     
-    my %files = ( find_docs $docdir, find_audibles $audiodir );
+    my %files = ( find_docs $docdir, find_audibles $audiodir, find_mangas $picturedir);
     my %files_r;
     foreach (keys %files) {
 	$files_r{$files{$_}} = $_;
@@ -216,7 +233,7 @@ elsif ($ARGV[0] eq '--write') {
 	$line =~ s/(\s+$|^\s+)//g;
 	next if $line eq '';
 	next if $line =~ /^!.*missing files/;
-		    
+
 	if ($line =~ /^%%\s*(.*)$/) {
 	    $colname = $1;
 	    $cols{$colname}->{NAME} = $colname;
